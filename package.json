@@ -1,5 +1,9 @@
 {
   "name": "@mft-energyoss/github-actions",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/mft-energyoss/backstage-github-actions"
+  },
   "version": "1.0.0",
   "license": "Apache-2.0",
   "private": true,
