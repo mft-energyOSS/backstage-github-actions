@@ -17,6 +17,6 @@ jobs:
           # Defaults to the user or organization that owns the workflow file
           scope: '@mft-energyoss'
       - run: npm ci
-      - run: npm publish
+      - run: npm publish --access public
         env:
           NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
