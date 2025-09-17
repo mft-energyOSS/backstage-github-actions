@@ -2,7 +2,7 @@
   "name": "@mft-energyoss/github-actions",
   "repository": {
     "type": "git",
-    "url": "https://github.com/mft-energyoss/backstage-github-actions",
+    "url": "https://github.com/mft-energyOSS/backstage-github-actions",
     "directory": "."
   },
   "version": "1.0.0",
