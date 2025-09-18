@@ -1,180 +1,63 @@
-# GitHub Actions Plugin
+# Backstage Scaffolder GitHub Actions extension
 
-Website: [https://github.com/actions](https://github.com/actions)
+The github-actions-dispatch-await module
+for [@backstage/plugin-scaffolder-backend](https://www.npmjs.com/package/@backstage/plugin-scaffolder-backend).
 
-## Table of Contents
+_This plugin was created through the Backstage CLI_
 
-- [GitHub Actions Plugin](#github-actions-plugin)
-  - [Table of Contents](#table-of-contents)
-  - [Screenshots](#screenshots)
-  - [Setup](#setup)
-    - [Generic Requirements](#generic-requirements)
-      - [Provide OAuth Credentials](#provide-oauth-credentials)
-    - [Installation](#installation)
-    - [Integrating with `EntityPage`](#integrating-with-entitypage)
-    - [Integrating with `EntityPage` (New Frontend System)](#integrating-with-entitypage-new-frontend-system)
-    - [Self-hosted / Enterprise GitHub](#self-hosted--enterprise-github)
-  - [Features](#features)
-  - [Limitations](#limitations)
-  - [Optional Workflow Runs Card View](#optional-workflow-runs-card-view)
+This plugins add the following actions to the scaffolder-backend:
 
-## Screenshots
-
-TBD
-
-## Setup
-
-### Generic Requirements
-
-#### Provide OAuth Credentials
-
-Create an OAuth App in your GitHub organization, setting the callback URL to:
-
-`http://localhost:7007/api/auth/github/handler/frame`
-
-Replacing `localhost:7007` with the base URL of your backstage backend instance.
-
-> **Note**: This setup can also be completed with a personal GitHub account.  
-> Keep in mind that using a personal account versus an organization account will affect which repositories the app can access.
-
-1. Take the Client ID and Client Secret from the newly created app's settings page and you can do either:
-
-   - Put them into `AUTH_GITHUB_CLIENT_ID` and `AUTH_GITHUB_CLIENT_SECRET` environment variables.
-   - Add them to the app-config like below:
-
-   ```yaml
-   auth:
-     providers:
-       github:
-         development:
-           clientId: ${AUTH_GITHUB_CLIENT_ID}
-           clientSecret: ${AUTH_GITHUB_CLIENT_SECRET}
-   ```
-
-2. Annotate your component with a correct GitHub Actions repository and owner:
-
-   The annotation key is `github.com/project-slug`.
-
-   Example:
-
-   ```yaml
-   apiVersion: backstage.io/v1alpha1
-   kind: Component
-   metadata:
-     name: backstage
-     description: backstage.io
-     annotations:
-       github.com/project-slug: 'backstage/backstage'
-   spec:
-     type: website
-     lifecycle: production
-     owner: user:guest
-   ```
+- `github:actions:dispatch:await` - This action will wait for dispatched GitHub actions to complete before continuing.
 
 ### Installation
 
-1. Install the plugin dependency in your Backstage app package:
+```bash
+npm i @mft-energyoss/github-actions
+```
+
+Install package
 
 ```bash
-# From your Backstage root directory
-yarn --cwd packages/app add @backstage-community/plugin-github-actions
+yarn --cwd packages/backend add @mft-energyoss/github-actions
 ```
 
-> **Note**: If you are using GitHub auth to sign in, you may already have the GitHub provider, **if it is not the case**, install it by running:
->
-> ```tsx
-> yarn --cwd packages/backend add @backstage/plugin-auth-backend-module-github-provider
-> ```
->
-> And add the following dependency to your backend index file:
->
-> ```tsx
-> backend.add(import('@backstage/plugin-auth-backend-module-github-provider'));
-> ```
+Then add the plugin to your backend, typically in packages/backend/src/index.ts:
 
-### Integrating with `EntityPage`
-
-1. Add to the app `EntityPage` component:
-
-```tsx
-// In packages/app/src/components/catalog/EntityPage.tsx
-import {
-  EntityGithubActionsContent,
-  isGithubActionsAvailable,
-} from '@backstage-community/plugin-github-actions';
-
-// You can add the tab to any number of pages, the service page is shown as an
-// example here
-const serviceEntityPage = (
-  <EntityLayout>
-    {/* other tabs... */}
-    <EntityLayout.Route path="/github-actions" title="GitHub Actions" if={isGithubActionsAvailable}>
-      <EntityGithubActionsContent />
-    </EntityLayout.Route>
-```
-
-3. Run the app with `yarn start` and the backend with `yarn start-backend`.
-   Then navigate to `/github-actions/` under any entity.
-
-### Integrating with `EntityPage` (New Frontend System)
-
-Follow this section if you are using Backstage's [new frontend system](https://backstage.io/docs/frontend-system/).
-
-Import `githubActionsPlugin` in your `App.tsx` and add it to your app's `features` array:
-
-```typescript
-import githubActionsPlugin from '@backstage-community/plugin-github-actions/alpha';
-
+```ts
+const backend = createBackend();
 // ...
-
-export const app = createApp({
-  features: [
-    // ...
-    githubActionsPlugin,
-    // ...
-  ],
-});
+backend.add(import('@mft-energyoss/github-actions'));
 ```
 
-### Self-hosted / Enterprise GitHub
+### Usage
 
-The plugin will try to use `backstage.io/source-location` or `backstage.io/managed-by-location`
-annotations to figure out the location of the source code.
-
-1. Add the `host` and `apiBaseUrl` to your `app-config.yaml`
+Make sure that your GitHub workflow has this minimal configuration:
 
 ```yaml
-# app-config.yaml
+run-name: Triggered by ${{ inputs.trigger_event }}
 
-integrations:
-  github:
-    - host: 'your-github-host.com'
-      apiBaseUrl: 'https://api.your-github-host.com'
+on:
+  workflow_dispatch:
+    inputs:
+      trigger_event:
+        description: 'A unique trigger event in order to await the workflow after. This could be a GUID or a simple string.'
+        required: true
+        type: string
+        default: "unqiue_id"
 ```
 
-## Features
+Then, in your scaffolder template, you can use the action like this:
 
-- List workflow runs for a project
-- Dive into one run to see a job steps
-- Retry runs
-- Pagination for runs
-
-## Limitations
-
-- There is a limit of 100 apps for one OAuth client/token pair
-
-## Optional Workflow Runs Card View
-
-Github Workflow Runs optional UI to show in Card view instead of table, with branch selection option
-
-```tsx
-
-// You can add the tab to any number of pages, the service page is shown as an
-// example given here
-const serviceEntityPage = (
-  <EntityLayout>
-    {/* other tabs... */}
-    <EntityLayout.Route path="/github-actions" title="GitHub Actions">
-      <EntityGithubActionsContent view='cards' />
-    </EntityLayout.Route>
+```yaml
+  steps:
+    - id: run_and_wait_for_workflow
+      name: Run And Wait For Workflow
+      action: github:actions:dispatch:await
+      input:
+        owner: mft-energyoss
+        repo: backstage-github-plugins
+        workflow: example-workflow.yml
+        branchName: main
+        inputs:
+          trigger_event: ${{ user.entity.spec.profile.email ~ ' ' ~ context.task.id }}
 ```
