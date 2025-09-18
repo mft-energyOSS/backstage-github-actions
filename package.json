@@ -25,7 +25,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/mft-energyOSS/backstage-github-actions",
+    "url": "https://github.com/mft-energyOSS/backstage-github-plugins",
     "directory": "."
   },
   "devDependencies": {

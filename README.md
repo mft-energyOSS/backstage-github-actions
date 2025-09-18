@@ -55,7 +55,7 @@ Then, in your scaffolder template, you can use the action like this:
       action: github:actions:dispatch:await
       input:
         owner: mft-energyoss
-        repo: backstage-github-actions
+        repo: backstage-github-plugins
         workflow: example-workflow.yml
         branchName: main
         inputs:

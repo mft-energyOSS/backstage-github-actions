@@ -30,7 +30,7 @@
   ],
   "repository": {
     "type": "git",
-    "url": "https://github.com/mft-energyOSS/backstage-github-actions",
+    "url": "https://github.com/mft-energyOSS/backstage-github-plugins",
     "directory": "."
   },
   "license": "Apache-2.0",
