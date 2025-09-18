@@ -10,11 +10,29 @@ jobs:
       id-token: write
     steps:
       - uses: actions/checkout@v5
+
       - uses: actions/setup-node@v4
         with:
           node-version: '20.x'
           registry-url: 'https://registry.npmjs.org'
-      - run: npm ci
-      - run: npm publish --provenance --access public
+
+      - uses: actions/cache@v4
+        with:
+          path: .yarn/cache
+          key: ${{ runner.os }}-yarn-${{ hashFiles('yarn.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-yarn-
+
+      - name: yarn install
+        run: yarn install --immutable
+
+      - name: Compile TypeScript
+        run: yarn tsc:full
+
+      - name: Build all packages
+        run: yarn build:all
+
+      - name: publish
+        run: yarn npm publish --access public --provenance --tolerate-republish
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
